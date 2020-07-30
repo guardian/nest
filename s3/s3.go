@@ -6,31 +6,39 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
+// UploadDir walks a directory and uploads all files to S3
 func UploadDir(bucket string, keyPrefix string, dir string) error {
 	return filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		if isDirectory(path) {
 			return nil
 		}
 
-		key := fmt.Sprintf("%s/%s", keyPrefix, path)
-		file, err := os.Open(path) // TODO handle error
+		key := fmt.Sprintf("%s%s", keyPrefix, strings.TrimPrefix(path, dir))
+		file, err := os.Open(path)
 		if err != nil {
 			return err
 		}
 
 		defer file.Close()
-		return UploadFile(bucket, key, file)
+		return UploadFile(bucket, key, file, true)
 	})
 }
 
-func UploadFile(bucket string, key string, file io.ReadSeeker) error {
-	client := s3.New(session.New())
+// UploadFile uploads files to S3
+func UploadFile(bucket string, key string, file io.ReadSeeker, dryRun bool) error {
+	session, err := session.NewSession()
+	if err != nil {
+		return err
+	}
+
+	client := s3.New(session)
 
 	input := &s3.PutObjectInput{
 		Body:   file,
@@ -38,7 +46,12 @@ func UploadFile(bucket string, key string, file io.ReadSeeker) error {
 		Key:    aws.String(key),
 	}
 
-	_, err := client.PutObject(input)
+	if dryRun {
+		fmt.Printf("%v", input)
+		return nil
+	}
+
+	_, err = client.PutObject(input)
 	return err
 }
 

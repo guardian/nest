@@ -68,7 +68,7 @@ func readConfig() Config {
 // TODO only works on TC probably atm
 func getBuildInfo(c Config) (BuildInfo, error) {
 	return BuildInfo{
-		ProjectName: fmt.Sprintf("%s:%s", c.Stack, c.App),
+		ProjectName: fmt.Sprintf("%s::%s", c.Stack, c.App),
 		BuildNumber: env("BUILD_VCS_NUMBER", "1"),
 		StartTime:   time.Now().Format(time.RFC3339),
 		VCSURL:      c.VCSURL,
@@ -87,17 +87,18 @@ func env(key, fallback string) string {
 
 // https://riffraff.gutools.co.uk/docs/reference/s3-artifact-layout.md
 func uploadArtifact(c Config) {
-	// upload artifact
-	err := s3.UploadDir("riffraff-artifacts", "prefix", target)
-	check(err)
-
-	// upload build.json
 	buildInfo, err := getBuildInfo(c)
 	check(err)
 
+	// upload artifact
+	prefix := fmt.Sprintf("%s/%s", buildInfo.ProjectName, buildInfo.BuildNumber)
+	err = s3.UploadDir("riffraff-artifacts", prefix, target)
+	check(err)
+
+	// upload build info (after artifacts to avoid race conditions in RR)
 	buildJSON, _ := json.Marshal(buildInfo)
 	path := fmt.Sprintf("%s/%s/build.json", buildInfo.ProjectName, buildInfo.BuildNumber)
-	err = s3.UploadFile("riffraff-builds", path, bytes.NewReader(buildJSON))
+	err = s3.UploadFile("riffraff-builds", path, bytes.NewReader(buildJSON), true)
 	check(err)
 }
 
