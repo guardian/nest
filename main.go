@@ -1,3 +1,6 @@
+// Nest provides helpers for building and deploying Guardian services. Riffraff
+// docs are really helpful for understanding what is going on here:
+// https://riffraff.gutools.co.uk/docs/reference/s3-artifact-layout.md.
 package main
 
 import (
@@ -5,12 +8,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"text/template"
 	"time"
 
+	"github.com/guardian/nest/config"
 	"github.com/guardian/nest/s3"
 	"github.com/guardian/nest/tpl"
 )
@@ -22,26 +25,34 @@ type info struct {
 
 var target string = "target"
 
+var helpText = `nest [build | upload | init | help]
+build	generate a Riffraff artifact
+upload	upload artifact files to Riffraff S3 bucket and build.json to build bucket
+init	(TODO) helper to generate your nest.json config
+help	print this help
+`
+
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Print(helpText)
+		return
+	}
+
 	switch os.Args[1] {
 	case "build":
-		c := readConfig()
+		c, err := config.ReadConfig()
+		check(err)
 		buildArtifact(c)
 	case "upload":
-		c := readConfig()
+		c, err := config.ReadConfig()
+		check(err)
 		uploadArtifact(c)
 	case "init":
-		fmt.Println("Not implemented yet!")
-		os.Exit(1)
+		err := config.InitConfig()
+		check(err)
+	case "help":
+		fmt.Print(helpText)
 	}
-}
-
-// Config is the type of a Nest config file (typically nest.json)
-type Config struct {
-	App          string `json:"app"`
-	Stack        string `json:"stack"`
-	ArtifactPath string `json:"artifactPath"`
-	VCSURL       string `json:"vcsURL"`
 }
 
 // BuildInfo - see https://riffraff.gutools.co.uk/docs/reference/build.json.md
@@ -54,19 +65,8 @@ type BuildInfo struct {
 	Revision    string `json:"revision"`
 }
 
-func readConfig() Config {
-	bytes, err := ioutil.ReadFile("nest.json")
-	check(err)
-
-	var config Config
-	err = json.Unmarshal(bytes, &config)
-	check(err)
-
-	return config
-}
-
 // TODO only works on TC probably atm
-func getBuildInfo(c Config) (BuildInfo, error) {
+func getBuildInfo(c config.Config) (BuildInfo, error) {
 	return BuildInfo{
 		ProjectName: fmt.Sprintf("%s::%s", c.Stack, c.App),
 		BuildNumber: env("BUILD_VCS_NUMBER", "1"),
@@ -85,8 +85,7 @@ func env(key, fallback string) string {
 	return fallback
 }
 
-// https://riffraff.gutools.co.uk/docs/reference/s3-artifact-layout.md
-func uploadArtifact(c Config) {
+func uploadArtifact(c config.Config) {
 	buildInfo, err := getBuildInfo(c)
 	check(err)
 
@@ -103,14 +102,19 @@ func uploadArtifact(c Config) {
 }
 
 // https://riffraff.gutools.co.uk/docs/reference/s3-artifact-layout.md
-func buildArtifact(c Config) {
+func buildArtifact(c config.Config) {
+	if c.DeploymentType != "service-ec2" {
+		fmt.Printf("unsupported deployment type: %s\n", c.DeploymentType)
+		os.Exit(1)
+	}
+
 	makeDir(target, c.App)
 	makeDir(target, "cfn")
 
 	tmpl, _ := template.New("riffraff").Parse(tpl.RiffRaff)
 
 	rr := bytes.Buffer{}
-	tmpl.Execute(&rr, info{App: "contributions-service", Bucket: "aws-frontend-artifacts"})
+	tmpl.Execute(&rr, info{App: c.App, Bucket: c.ArtifactBucket})
 	rrOutput, err := ioutil.ReadAll(&rr)
 	check(err)
 
@@ -132,6 +136,7 @@ func makeDir(target, folder string) {
 // TODO add second argument as helper message on failure
 func check(err error) {
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
