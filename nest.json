@@ -1,0 +1,7 @@
+{
+    "app": "nest",
+    "stack": "frontend",
+    "vcsURL": "https://github.com/guardian/nest",
+    "deploymentType": "ec2-service",
+    "artifactBucket": "aws-frontend-artifacts"
+}

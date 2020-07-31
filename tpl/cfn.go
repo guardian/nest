@@ -1,5 +1,6 @@
 package tpl
 
+// Cfn generated from https://github.com/guardian/gu-cdk
 var Cfn string = `
 {
 	"Parameters": {

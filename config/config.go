@@ -12,7 +12,6 @@ import (
 type Config struct {
 	App            string `json:"app"`
 	Stack          string `json:"stack"`
-	ArtifactPath   string `json:"artifactPath"`
 	VCSURL         string `json:"vcsURL"`
 	DeploymentType string `json:"deploymentType"`
 	ArtifactBucket string `json:"artifactBucket"`

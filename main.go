@@ -8,7 +8,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"text/template"
 	"time"
@@ -25,10 +28,11 @@ type info struct {
 
 var target string = "target"
 
-var helpText = `nest [build | upload | init | help]
+var helpText = `nest [http | build | upload | init | help]
+http	starts a basic HTTP service (for testing)
 build	generate a Riffraff artifact
 upload	upload artifact files to Riffraff S3 bucket and build.json to build bucket
-init	(TODO) helper to generate your nest.json config
+init	helper to generate your nest.json config
 help	print this help
 `
 
@@ -39,17 +43,19 @@ func main() {
 	}
 
 	switch os.Args[1] {
+	case "http":
+		startTestServer()
 	case "build":
 		c, err := config.ReadConfig()
-		check(err)
+		check(err, "Unable to read nest.json config.")
 		buildArtifact(c)
 	case "upload":
 		c, err := config.ReadConfig()
-		check(err)
+		check(err, "Unable to read nest.json config.")
 		uploadArtifact(c)
 	case "init":
 		err := config.InitConfig()
-		check(err)
+		check(err, "Unable to init nest.json config.")
 	case "help":
 		fmt.Print(helpText)
 	}
@@ -87,18 +93,18 @@ func env(key, fallback string) string {
 
 func uploadArtifact(c config.Config) {
 	buildInfo, err := getBuildInfo(c)
-	check(err)
+	check(err, "Unable to generate Riffraff build.json file.")
 
 	// upload artifact
 	prefix := fmt.Sprintf("%s/%s", buildInfo.ProjectName, buildInfo.BuildNumber)
 	err = s3.UploadDir("riffraff-artifacts", prefix, target)
-	check(err)
+	check(err, "Unable to upload artifact files.")
 
 	// upload build info (after artifacts to avoid race conditions in RR)
 	buildJSON, _ := json.Marshal(buildInfo)
 	path := fmt.Sprintf("%s/%s/build.json", buildInfo.ProjectName, buildInfo.BuildNumber)
 	err = s3.UploadFile("riffraff-builds", path, bytes.NewReader(buildJSON), true)
-	check(err)
+	check(err, "Unable to upload Riffraff build.json file.")
 }
 
 // https://riffraff.gutools.co.uk/docs/reference/s3-artifact-layout.md
@@ -108,35 +114,53 @@ func buildArtifact(c config.Config) {
 		os.Exit(1)
 	}
 
+	artifactFile := "app.tar.gz"
+
 	makeDir(target, c.App)
 	makeDir(target, "cfn")
+
+	buildOut, err := exec.Command(fmt.Sprintf("docker build -t %s:latest .", c.App)).Output()
+	check(err, fmt.Sprintf("Unable to build Docker image: %s.", string(buildOut)))
+
+	saveOut, err := exec.Command(fmt.Sprintf("docker save %s:latest | gzip > %s", c.App, artifactFile)).Output()
+	check(err, fmt.Sprintf("Unable to save Docker image: %s.", string(saveOut)))
 
 	tmpl, _ := template.New("riffraff").Parse(tpl.RiffRaff)
 
 	rr := bytes.Buffer{}
 	tmpl.Execute(&rr, info{App: c.App, Bucket: c.ArtifactBucket})
 	rrOutput, err := ioutil.ReadAll(&rr)
-	check(err)
+	check(err, "Unable to read Riffraff template output.")
 
 	err = ioutil.WriteFile(filepath.Join(target, "riff-raff.yaml"), rrOutput, os.ModePerm)
-	check(err)
+	check(err, "Unable to write riff-raff.yaml file.")
 
 	err = ioutil.WriteFile(filepath.Join(target, "cfn", "cfn.yaml"), []byte(tpl.Cfn), os.ModePerm)
-	check(err)
+	check(err, "Unable to write cfn.yaml file.")
 
-	err = os.Rename(c.ArtifactPath, filepath.Join(target, c.App, c.ArtifactPath))
-	check(err)
+	err = os.Rename(artifactFile, filepath.Join(target, c.App, artifactFile))
+	check(err, "Unable to move artifact.")
 }
 
 func makeDir(target, folder string) {
-	err := os.MkdirAll(filepath.Join(target, folder), os.ModePerm)
-	check(err)
+	path := filepath.Join(target, folder)
+	err := os.MkdirAll(path, os.ModePerm)
+	check(err, fmt.Sprintf("Unable to make directories %s.", path))
 }
 
 // TODO add second argument as helper message on failure
-func check(err error) {
+func check(err error, msg string) {
 	if err != nil {
+		fmt.Println(msg)
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func startTestServer() {
+	http.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "Hello, world")
+	})
+
+	log.Fatal(http.ListenAndServe(":"+env("PORT", "8080"), nil))
 }
