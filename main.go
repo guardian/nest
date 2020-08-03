@@ -97,7 +97,7 @@ func uploadArtifact(c config.Config) {
 
 	// upload artifact
 	prefix := fmt.Sprintf("%s/%s", buildInfo.ProjectName, buildInfo.BuildNumber)
-	err = s3.UploadDir("riffraff-artifacts", prefix, target)
+	err = s3.UploadDir("riffraff-artifact", prefix, target)
 	check(err, "Unable to upload artifact files.")
 
 	// upload build info (after artifacts to avoid race conditions in RR)
