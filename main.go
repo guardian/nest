@@ -28,12 +28,35 @@ type info struct {
 
 var target string = "target"
 
-var helpText = `nest [http | build | upload | init | help]
+var helpText = `nest [http | build | upload | init | recipes | help]
 http	starts a basic HTTP service (for testing)
 build	generate a Riffraff artifact
 upload	upload artifact files to Riffraff S3 bucket and build.json to build bucket
 init	helper to generate your nest.json config
+recipes	describes supported deployment types
 help	print this help
+`
+
+var recipesText = `nest recipes are predefined deployment types:
+
+ec2-service
+  Suitable for a service that is exposed over HTTP. It expects a 
+  Dockerfile in your root directory that starts your service and
+  outputs a deployable Riffraff artifact that creates an ASG with
+  your app inside. Note, this recipe does *not* provide a load
+  balancer; it is expected you will use a shared ALB for this.
+
+  Logging is provided via Cloudwatch Logs (container output is
+  redirected here). You may want to forward this on to the Guardian
+  ELK stack from Cloudwatch.
+
+  At the moment, you will need to manually create the Cloudformation
+  stack (use 'nest build' to generate) before deploying via Riffraff
+  in order to specify the required parameter values - i.e. for things
+  like the VPC ID and subnets.
+
+  Use the naming convention: STACK-APP-STAGE
+  (e.g. frontend-nest-PROD).
 `
 
 func main() {
@@ -56,6 +79,8 @@ func main() {
 	case "init":
 		err := config.InitConfig()
 		check(err, "Unable to init nest.json config.")
+	case "recipes":
+		fmt.Print(recipesText)
 	case "help":
 		fmt.Print(helpText)
 	}
