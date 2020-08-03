@@ -75,7 +75,7 @@ type BuildInfo struct {
 func getBuildInfo(c config.Config) (BuildInfo, error) {
 	return BuildInfo{
 		ProjectName: fmt.Sprintf("%s::%s", c.Stack, c.App),
-		BuildNumber: env("BUILD_NUMBER", "1"),
+		BuildNumber: env("BUILD_COUNTER", "1"),
 		StartTime:   time.Now().Format(time.RFC3339),
 		VCSURL:      c.VCSURL,
 		Branch:      env("BRANCH_NAME", "main"),
