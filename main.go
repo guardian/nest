@@ -75,7 +75,7 @@ type BuildInfo struct {
 func getBuildInfo(c config.Config) (BuildInfo, error) {
 	return BuildInfo{
 		ProjectName: fmt.Sprintf("%s::%s", c.Stack, c.App),
-		BuildNumber: env("BUILD_VCS_NUMBER", "1"),
+		BuildNumber: env("BUILD_NUMBER", "1"),
 		StartTime:   time.Now().Format(time.RFC3339),
 		VCSURL:      c.VCSURL,
 		Branch:      env("BRANCH_NAME", "main"),
@@ -84,7 +84,7 @@ func getBuildInfo(c config.Config) (BuildInfo, error) {
 }
 
 func env(key, fallback string) string {
-	if val, ok := os.LookupEnv(key); ok {
+	if val, ok := os.LookupEnv(key); ok && val != "" {
 		return val
 	}
 
