@@ -33,7 +33,7 @@ func UploadDir(bucket string, keyPrefix string, dir string) error {
 
 // UploadFile uploads files to S3
 func UploadFile(bucket string, key string, file io.ReadSeeker, dryRun bool) error {
-	session, err := session.NewSession()
+	session, err := session.NewSession(aws.NewConfig().WithRegion("eu-west-1"))
 	if err != nil {
 		return err
 	}
