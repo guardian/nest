@@ -46,7 +46,7 @@ func UploadFile(bucket string, key string, file io.ReadSeeker) error {
 		Key:    aws.String(key),
 	}
 
-	fmt.Printf("%v", input)
+	fmt.Printf("%v\n", input)
 
 	_, err = client.PutObject(input)
 	return err
