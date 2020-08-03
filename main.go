@@ -191,5 +191,5 @@ func startTestServer() {
 		fmt.Fprint(w, "Hello, world")
 	})
 
-	log.Fatal(http.ListenAndServe(":"+env("PORT", "8080"), nil))
+	log.Fatal(http.ListenAndServe(":"+env("PORT", "3030"), nil))
 }
