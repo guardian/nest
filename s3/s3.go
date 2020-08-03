@@ -27,12 +27,12 @@ func UploadDir(bucket string, keyPrefix string, dir string) error {
 		}
 
 		defer file.Close()
-		return UploadFile(bucket, key, file, true)
+		return UploadFile(bucket, key, file)
 	})
 }
 
 // UploadFile uploads files to S3
-func UploadFile(bucket string, key string, file io.ReadSeeker, dryRun bool) error {
+func UploadFile(bucket string, key string, file io.ReadSeeker) error {
 	session, err := session.NewSession(aws.NewConfig().WithRegion("eu-west-1"))
 	if err != nil {
 		return err
@@ -46,10 +46,7 @@ func UploadFile(bucket string, key string, file io.ReadSeeker, dryRun bool) erro
 		Key:    aws.String(key),
 	}
 
-	if dryRun {
-		fmt.Printf("%v", input)
-		return nil
-	}
+	fmt.Printf("%v", input)
 
 	_, err = client.PutObject(input)
 	return err
