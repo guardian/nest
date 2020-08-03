@@ -44,6 +44,7 @@ func UploadFile(bucket string, key string, file io.ReadSeeker) error {
 		Body:   file,
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
+		ACL:    aws.String(s3.ObjectCannedACLBucketOwnerFullControl),
 	}
 
 	fmt.Printf("%v\n", input)
