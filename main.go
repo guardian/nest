@@ -103,7 +103,7 @@ func uploadArtifact(c config.Config) {
 	// upload build info (after artifacts to avoid race conditions in RR)
 	buildJSON, _ := json.Marshal(buildInfo)
 	path := fmt.Sprintf("%s/%s/build.json", buildInfo.ProjectName, buildInfo.BuildNumber)
-	err = s3.UploadFile("riffraff-builds", path, bytes.NewReader(buildJSON), true)
+	err = s3.UploadFile("riffraff-builds", path, bytes.NewReader(buildJSON), false)
 	check(err, "Unable to upload Riffraff build.json file.")
 }
 
