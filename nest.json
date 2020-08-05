@@ -2,6 +2,6 @@
     "app": "nest",
     "stack": "frontend",
     "vcsURL": "https://github.com/guardian/nest",
-    "deploymentType": "service-ec2",
+    "deploymentType": "alb-ec2-service",
     "artifactBucket": "aws-frontend-artifacts"
 }

@@ -51,6 +51,8 @@ func InitConfig() error {
 	bucket, _, _ := reader.ReadLine()
 	config.ArtifactBucket = string(bucket)
 
+	config.DeploymentType = "alb-ec2-service"
+
 	data, _ := json.MarshalIndent(config, "", "    ")
 
 	return ioutil.WriteFile("nest.json", data, os.ModePerm)

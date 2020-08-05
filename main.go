@@ -39,12 +39,11 @@ help	print this help
 
 var recipesText = `nest recipes are predefined deployment types:
 
-ec2-service
+alb-ec2-service
   Suitable for a service that is exposed over HTTP. It expects a 
   Dockerfile in your root directory that starts your service and
   outputs a deployable Riffraff artifact that creates an ASG with
-  your app inside. Note, this recipe does *not* provide a load
-  balancer; it is expected you will use a shared ALB for this.
+  your app inside. An ALB is used to front things.
 
   Logging is provided via Cloudwatch Logs (container output is
   redirected here). You may want to forward this on to the Guardian
@@ -136,7 +135,7 @@ func uploadArtifact(c config.Config) {
 
 // https://riffraff.gutools.co.uk/docs/reference/s3-artifact-layout.md
 func buildArtifact(c config.Config) {
-	if c.DeploymentType != "service-ec2" {
+	if c.DeploymentType != "alb-ec2-service" {
 		fmt.Printf("unsupported deployment type: %s\n", c.DeploymentType)
 		os.Exit(1)
 	}
