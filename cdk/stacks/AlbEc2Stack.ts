@@ -140,7 +140,7 @@ export class AlbEc2Stack extends cdk.Stack {
                             effect: iam.Effect.ALLOW,
                             resources: [
                                 `arn:aws:ssm:eu-west-1:642631414762:parameter/${
-                                    tags.stack.valueAsString
+                                    tags.app.valueAsString
                                 }/${cdk.Fn.findInMap(
                                     "stages",
                                     tags.stage.valueAsString,

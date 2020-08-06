@@ -172,7 +172,7 @@ var AlbEc2Stack string = `
 						[
 						  "arn:aws:ssm:eu-west-1:642631414762:parameter/",
 						  {
-							"Ref": "Stack"
+							"Ref": "App"
 						  },
 						  "/",
 						  {
