@@ -76,6 +76,19 @@ export class AlbEc2Stack extends cdk.Stack {
                 "ARNs for managed policies you want included in instance role",
         });
 
+        const kmsKey = new cdk.CfnParameter(this, "KMS key", {
+            type: "String",
+            description: "KMS key used to decrypt parameter store secrets",
+        });
+
+        const stageMapping = new cdk.CfnMapping(this, "stages", {
+            mapping: {
+                CODE: { lower: "code" },
+                PROD: { lower: "prod" },
+                DEV: { lower: "dev" },
+            },
+        });
+
         /*     const managedPolicies = rolePolicyARNs.valueAsList.map((arn) => ({
       managedPolicyArn: arn,
     })); */
@@ -123,6 +136,24 @@ export class AlbEc2Stack extends cdk.Stack {
                                 "logs:PutLogEvents",
                             ],
                         }),
+                        new iam.PolicyStatement({
+                            effect: iam.Effect.ALLOW,
+                            resources: [
+                                `arn:aws:ssm:eu-west-1:642631414762:parameter/${
+                                    tags.stack.valueAsString
+                                }/${cdk.Fn.findInMap(
+                                    "stages",
+                                    tags.stage.valueAsString,
+                                    "lower"
+                                )}`,
+                            ],
+                            actions: ["ssm:GetParametersByPath"],
+                        }),
+                        new iam.PolicyStatement({
+                            effect: iam.Effect.ALLOW,
+                            resources: [kmsKey.valueAsString],
+                            actions: ["kms:Decrypt"],
+                        }),
                     ],
                 }),
             },
@@ -135,10 +166,19 @@ export class AlbEc2Stack extends cdk.Stack {
         });
 
         const userData = ec2.UserData.forLinux();
+
         userData.addCommands(
+            `nest-secrets --prefix /${
+                tags.app.valueAsString
+            }/${cdk.Fn.findInMap(
+                "stages",
+                tags.stage.valueAsString,
+                "lower"
+            )} > .env`,
             `aws s3 cp s3://${s3Bucket.valueAsString}/${s3Key.valueAsString} app.tar.gz`,
             `docker load < app.tar.gz`,
             `docker run \
+            --env-file .env \
             -p 3030:3030 \
             --log-driver=awslogs \
             --log-opt awslogs-group=${tags.stack.valueAsString}/${tags.app.valueAsString}/${tags.stage.valueAsString} \

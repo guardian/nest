@@ -1,7 +1,7 @@
 package tpl
 
-// Cfn - generated from cdk directory
-var Cfn string = `
+// AlbEc2Stack - generated from cdk directory
+var AlbEc2Stack string = `
 {
 	"Parameters": {
 	  "Stack": {
@@ -62,6 +62,23 @@ var Cfn string = `
 	  "PolicyARNs": {
 		"Type": "CommaDelimitedList",
 		"Description": "ARNs for managed policies you want included in instance role"
+	  },
+	  "KMSkey": {
+		"Type": "String",
+		"Description": "KMS key used to decrypt parameter store secrets"
+	  }
+	},
+	"Mappings": {
+	  "stages": {
+		"CODE": {
+		  "lower": "code"
+		},
+		"PROD": {
+		  "lower": "prod"
+		},
+		"DEV": {
+		  "lower": "dev"
+		}
 	  }
 	},
 	"Resources": {
@@ -145,6 +162,38 @@ var Cfn string = `
 					],
 					"Effect": "Allow",
 					"Resource": "*"
+				  },
+				  {
+					"Action": "ssm:GetParametersByPath",
+					"Effect": "Allow",
+					"Resource": {
+					  "Fn::Join": [
+						"",
+						[
+						  "arn:aws:ssm:eu-west-1:642631414762:parameter/",
+						  {
+							"Ref": "Stack"
+						  },
+						  "/",
+						  {
+							"Fn::FindInMap": [
+							  "stages",
+							  {
+								"Ref": "Stage"
+							  },
+							  "lower"
+							]
+						  }
+						]
+					  ]
+					}
+				  },
+				  {
+					"Action": "kms:Decrypt",
+					"Effect": "Allow",
+					"Resource": {
+					  "Ref": "KMSkey"
+					}
 				  }
 				],
 				"Version": "2012-10-17"
@@ -294,7 +343,21 @@ var Cfn string = `
 			  "Fn::Join": [
 				"",
 				[
-				  "#!/bin/bash\naws s3 cp s3://",
+				  "#!/bin/bash\nnest-secrets --prefix /",
+				  {
+					"Ref": "App"
+				  },
+				  "/",
+				  {
+					"Fn::FindInMap": [
+					  "stages",
+					  {
+						"Ref": "Stage"
+					  },
+					  "lower"
+					]
+				  },
+				  " > .env\naws s3 cp s3://",
 				  {
 					"Ref": "S3Bucket"
 				  },
@@ -302,7 +365,7 @@ var Cfn string = `
 				  {
 					"Ref": "S3Key"
 				  },
-				  " app.tar.gz\ndocker load < app.tar.gz\ndocker run             -p 3030:3030             --log-driver=awslogs             --log-opt awslogs-group=",
+				  " app.tar.gz\ndocker load < app.tar.gz\ndocker run             --env-file .env             -p 3030:3030             --log-driver=awslogs             --log-opt awslogs-group=",
 				  {
 					"Ref": "Stack"
 				  },

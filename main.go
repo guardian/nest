@@ -163,7 +163,7 @@ func buildArtifact(c config.Config) {
 	err = ioutil.WriteFile(filepath.Join(target, "riff-raff.yaml"), rrOutput, os.ModePerm)
 	check(err, "Unable to write riff-raff.yaml file.")
 
-	err = ioutil.WriteFile(filepath.Join(target, "cfn", "cfn.yaml"), []byte(tpl.Cfn), os.ModePerm)
+	err = ioutil.WriteFile(filepath.Join(target, "cfn", "cfn.yaml"), []byte(tpl.AlbEc2Stack), os.ModePerm)
 	check(err, "Unable to write cfn.yaml file.")
 
 	err = os.Rename(artifactFile, filepath.Join(target, c.App, artifactFile))
@@ -187,7 +187,8 @@ func check(err error, msg string) {
 
 func startTestServer() {
 	http.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "Hello, world")
+		name := env("nest_prod_name", "Fitzchivalry")
+		fmt.Fprintf(w, "Hello, %s", name)
 	})
 
 	log.Fatal(http.ListenAndServe(":"+env("PORT", "3030"), nil))

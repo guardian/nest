@@ -15,14 +15,23 @@ To achieve this, Docker is used as the unit of deployment.
 
 ## Usage
 
-At the moment, only one deployment type is supported: `ec2-service`. This is a
-simple recipe to deploy instances to an ASG.
+At the moment, only one deployment type is supported: `alb-ec2-service`. This is
+a simple recipe to deploy instances to an ASG. Out of the box it provides:
 
-Make sure you have a `Dockerfile` in the root of your repository, which builds
-your app. It should respect a PORT environment variable and listen on that.
+- a public load balancer, pointing to instances living in an autoscaling group
+- [ssm](https://github.com/guardian/ssm-scala) compatibility (via the tunnel
+  approach)
+- logging (Cloudwatch Logs)
+- secrets/config (via Parameter Store)
 
-Then, grab a release of Nest suitable for your platform ('darwin' if Mac) and
-run:
+See the specific sections below for details about these.
+
+To use this recipe, simply make sure you have a `Dockerfile` in the root of your
+repository, which builds your app. It should start up your service on the port
+of the `PORT` environment variable (which Nest will specify).
+
+Then, grab the latest release of Nest suitable for your platform ('darwin' if
+Mac) and run:
 
     $ nest init
     $ nest build
@@ -38,9 +47,24 @@ For additional help, see:
 The usual Riffraff rules apply - your Riffraff user will need to have permission
 to write to your artifact bucket for example.
 
-Logging is provided by Cloudwatch Logs (which can be forwarded to Kinesis/ELK if
-you like).
+## Logging
 
-Extra reading:
+Logging is provided by Cloudwatch Logs (which can be forwarded to Kinesis/ELK if
+you like). Simply log to standout out/error. We recommend a JSON format.
+
+## Secrets/config
+
+Nest uses [nest-secrets](https://github.com/guardian/nest-secrets) to pass
+configuration into your container as environment variables. Simply prefix your
+config in Parameter Store with `/${app}/{stage_lower}` and they will be provided
+on startup.
+
+Note, `/` and `.` in parameter names are converted to `_`. See the
+`nest-secrets` README for more info here.
+
+## Extra reading
+
+If you want to understand the Riffraff deployment model better, we recommend
+reading:
 
 https://riffraff.gutools.co.uk/docs/reference/s3-artifact-layout.md.
