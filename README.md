@@ -57,7 +57,7 @@ you like). Simply log to standout out/error. We recommend a JSON format.
 Nest uses [nest-secrets](https://github.com/guardian/nest-secrets) to pass
 configuration into your container as environment variables. Simply prefix your
 config in Parameter Store with `/${app}/{stage_lower}` and they will be provided
-on startup.
+on startup to your app as environment variables.
 
 Note, `/` and `.` in parameter names are converted to `_`. See the
 `nest-secrets` README for more info here.
