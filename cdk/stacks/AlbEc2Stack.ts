@@ -11,12 +11,12 @@ export class AlbEc2Stack extends cdk.Stack {
 
         const tags = new Tags(this, "Guardian core tags");
 
-        const instanceClass = new cdk.CfnParameter(this, "Instance class", {
+        const instanceClass = new cdk.CfnParameter(this, "InstanceClass", {
             type: "String",
             default: "t3a",
         });
 
-        const instanceSize = new cdk.CfnParameter(this, "Instance size", {
+        const instanceSize = new cdk.CfnParameter(this, "InstanceSize", {
             type: "String",
             default: "small",
         });
@@ -42,18 +42,18 @@ export class AlbEc2Stack extends cdk.Stack {
                 "AMI ID to be provded by RiffRaff. Should include Docker at least. Our Amazon Linux 2 Docker recipe is recommended here.",
         });
 
-        const s3Bucket = new cdk.CfnParameter(this, "S3 Bucket", {
+        const s3Bucket = new cdk.CfnParameter(this, "S3Bucket", {
             type: "String",
             description: "Name of S3 bucket where artifact found",
         });
 
-        const s3Key = new cdk.CfnParameter(this, "S3 Key", {
+        const s3Key = new cdk.CfnParameter(this, "S3Key", {
             type: "String",
             description:
                 "S3 key where artifact lives (should be a Docker saved .tar file)",
         });
 
-        const tag = new cdk.CfnParameter(this, "Docker Tag", {
+        const tag = new cdk.CfnParameter(this, "DockerTag", {
             type: "String",
             description:
                 "Once the s3 artifact is docker loaded, this tag is used to determine which container to start",
@@ -63,22 +63,36 @@ export class AlbEc2Stack extends cdk.Stack {
             type: "String",
         });
 
-        const maxCapacity = new cdk.CfnParameter(this, "ASG max capacity", {
+        const minCapacity = new cdk.CfnParameter(this, "MinCapacity", {
+            type: "Number",
+            description:
+                "Min capacity of ASG. Typically, we want at least 3 instances for PROD for availability purposes, but 1 for CODE.",
+            default: 1,
+        });
+
+        const maxCapacity = new cdk.CfnParameter(this, "MaxCapacity", {
             type: "Number",
             description:
                 "Max capacity of ASG (double normal capacity at least to allow for deploys",
             default: 2,
         });
 
-        const rolePolicyARNs = new cdk.CfnParameter(this, "Policy ARNs", {
+        const rolePolicyARNs = new cdk.CfnParameter(this, "PolicyARNs", {
             type: "CommaDelimitedList",
             description:
                 "ARNs for managed policies you want included in instance role",
         });
 
-        const kmsKey = new cdk.CfnParameter(this, "KMS key", {
+        const kmsKey = new cdk.CfnParameter(this, "KMSKey", {
             type: "String",
             description: "KMS key used to decrypt parameter store secrets",
+        });
+
+        const targetCPU = new cdk.CfnParameter(this, "TargetCPU", {
+            type: "Number",
+            description:
+                "Target CPU, used for autoscaling. Nb. you may want to set this quite low if using Burstable instances such as t3 ones.",
+            default: 80,
         });
 
         const stageMapping = new cdk.CfnMapping(this, "stages", {
@@ -200,9 +214,12 @@ export class AlbEc2Stack extends cdk.Stack {
             vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
             associatePublicIpAddress: true,
             maxCapacity: maxCapacity.valueAsNumber,
+            minCapacity: minCapacity.valueAsNumber,
         });
 
-        asg.scaleOnCpuUtilization("GT80CPU", { targetUtilizationPercent: 80 });
+        asg.scaleOnCpuUtilization("GTCPU", {
+            targetUtilizationPercent: targetCPU.valueAsNumber,
+        });
 
         const lb = new elbv2.ApplicationLoadBalancer(this, "LB", {
             vpc,

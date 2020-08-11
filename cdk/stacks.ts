@@ -1,5 +1,4 @@
 import { AlbEc2Stack } from "./stacks/AlbEc2Stack";
-import { Ec2Stack } from "./stacks/Ec2Stack";
 import * as cdk from "@aws-cdk/core";
 
 const props = { env: { region: "eu-west-1" } };

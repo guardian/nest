@@ -15,11 +15,11 @@ var AlbEc2Stack string = `
 	  "App": {
 		"Type": "String"
 	  },
-	  "Instanceclass": {
+	  "InstanceClass": {
 		"Type": "String",
 		"Default": "t3a"
 	  },
-	  "Instancesize": {
+	  "InstanceSize": {
 		"Type": "String",
 		"Default": "small"
 	  },
@@ -54,7 +54,12 @@ var AlbEc2Stack string = `
 	  "CertificateArn": {
 		"Type": "String"
 	  },
-	  "ASGmaxcapacity": {
+	  "MinCapacity": {
+		"Type": "Number",
+		"Default": 1,
+		"Description": "Min capacity of ASG. Typically, we want at least 3 instances for PROD for availability purposes, but 1 for CODE."
+	  },
+	  "MaxCapacity": {
 		"Type": "Number",
 		"Default": 2,
 		"Description": "Max capacity of ASG (double normal capacity at least to allow for deploys"
@@ -63,9 +68,14 @@ var AlbEc2Stack string = `
 		"Type": "CommaDelimitedList",
 		"Description": "ARNs for managed policies you want included in instance role"
 	  },
-	  "KMSkey": {
+	  "KMSKey": {
 		"Type": "String",
 		"Description": "KMS key used to decrypt parameter store secrets"
+	  },
+	  "TargetCPU": {
+		"Type": "Number",
+		"Default": 80,
+		"Description": "Target CPU, used for autoscaling. Nb. you may want to set this quite low if using Burstable instances such as t3 ones."
 	  }
 	},
 	"Mappings": {
@@ -192,7 +202,7 @@ var AlbEc2Stack string = `
 					"Action": "kms:Decrypt",
 					"Effect": "Allow",
 					"Resource": {
-					  "Ref": "KMSkey"
+					  "Ref": "KMSKey"
 					}
 				  }
 				],
@@ -317,11 +327,11 @@ var AlbEc2Stack string = `
 			  "",
 			  [
 				{
-				  "Ref": "Instanceclass"
+				  "Ref": "InstanceClass"
 				},
 				".",
 				{
-				  "Ref": "Instancesize"
+				  "Ref": "InstanceSize"
 				}
 			  ]
 			]
@@ -397,9 +407,11 @@ var AlbEc2Stack string = `
 		"Type": "AWS::AutoScaling::AutoScalingGroup",
 		"Properties": {
 		  "MaxSize": {
-			"Ref": "ASGmaxcapacity"
+			"Ref": "MaxCapacity"
 		  },
-		  "MinSize": "1",
+		  "MinSize": {
+			"Ref": "MinCapacity"
+		  },
 		  "LaunchConfigurationName": {
 			"Ref": "ASGLaunchConfigC00AF12B"
 		  },
@@ -449,7 +461,7 @@ var AlbEc2Stack string = `
 		  "aws:cdk:path": "AlbEc2Stack/ASG/ASG"
 		}
 	  },
-	  "ASGScalingPolicyGT80CPUD8CC7169": {
+	  "ASGScalingPolicyGTCPUF089F755": {
 		"Type": "AWS::AutoScaling::ScalingPolicy",
 		"Properties": {
 		  "AutoScalingGroupName": {
@@ -460,11 +472,13 @@ var AlbEc2Stack string = `
 			"PredefinedMetricSpecification": {
 			  "PredefinedMetricType": "ASGAverageCPUUtilization"
 			},
-			"TargetValue": 80
+			"TargetValue": {
+			  "Ref": "TargetCPU"
+			}
 		  }
 		},
 		"Metadata": {
-		  "aws:cdk:path": "AlbEc2Stack/ASG/ScalingPolicyGT80CPU/Resource"
+		  "aws:cdk:path": "AlbEc2Stack/ASG/ScalingPolicyGTCPU/Resource"
 		}
 	  },
 	  "LB8A12904C": {
