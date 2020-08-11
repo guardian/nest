@@ -15,6 +15,9 @@ type Config struct {
 	VCSURL         string `json:"vcsURL"`
 	DeploymentType string `json:"deploymentType"`
 	ArtifactBucket string `json:"artifactBucket"`
+
+	// Note, leave empty to use the default. This is really for migrations only.
+	CloudformationStackName string `json:"cloudformationStackName"`
 }
 
 // ReadConfig reads a nest.json file (if one exists) in the current directory.

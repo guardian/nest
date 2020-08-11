@@ -10,7 +10,7 @@ deployments:
         type: cloud-formation
         app: {{.App}}
         parameters:
-            cloudFormationStackName: {{.App}}
+            cloudFormationStackName: {{.CloudformationStackName}}
             templatePath: cfn.yaml
             cloudFormationStackByTags: false
             amiTags:

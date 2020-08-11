@@ -22,8 +22,9 @@ import (
 )
 
 type info struct {
-	App    string
-	Bucket string
+	App                     string
+	Bucket                  string
+	CloudformationStackName string
 }
 
 var target string = "target"
@@ -156,7 +157,11 @@ func buildArtifact(c config.Config) {
 	tmpl, _ := template.New("riffraff").Parse(tpl.RiffRaff)
 
 	rr := bytes.Buffer{}
-	tmpl.Execute(&rr, info{App: c.App, Bucket: c.ArtifactBucket})
+	cfnStackName := c.CloudformationStackName
+	if cfnStackName == "" {
+		cfnStackName = c.App
+	}
+	tmpl.Execute(&rr, info{App: c.App, Bucket: c.ArtifactBucket, CloudformationStackName: cfnStackName})
 	rrOutput, err := ioutil.ReadAll(&rr)
 	check(err, "Unable to read Riffraff template output.")
 
