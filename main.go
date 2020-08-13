@@ -101,7 +101,7 @@ func getBuildInfo(c config.Config) (BuildInfo, error) {
 	return BuildInfo{
 		ProjectName: fmt.Sprintf("%s::%s", c.Stack, c.App),
 		BuildNumber: env("BUILD_COUNTER", "1"),
-		StartTime:   time.Now().Format(time.RFC3339),
+		StartTime:   time.Now().UTC().Format("2006-01-02T15:04:05.999Z"),
 		VCSURL:      c.VCSURL,
 		Branch:      env("BRANCH_NAME", "main"),
 		Revision:    env("BUILD_VCS_NUMBER", ""),
