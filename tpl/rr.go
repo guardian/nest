@@ -2,7 +2,7 @@ package tpl
 
 // RiffRaff config template
 var RiffRaff string = `
-stacks: [frontend]
+stacks: [{{.Stack}}]
 regions: [eu-west-1]
 
 deployments:

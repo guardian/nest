@@ -25,6 +25,7 @@ type info struct {
 	App                     string
 	Bucket                  string
 	CloudformationStackName string
+	Stack                   string
 }
 
 var target string = "target"
@@ -161,7 +162,7 @@ func buildArtifact(c config.Config) {
 	if cfnStackName == "" {
 		cfnStackName = c.App
 	}
-	tmpl.Execute(&rr, info{App: c.App, Bucket: c.ArtifactBucket, CloudformationStackName: cfnStackName})
+	tmpl.Execute(&rr, info{App: c.App, Bucket: c.ArtifactBucket, CloudformationStackName: cfnStackName, Stack: c.Stack})
 	rrOutput, err := ioutil.ReadAll(&rr)
 	check(err, "Unable to read Riffraff template output.")
 
