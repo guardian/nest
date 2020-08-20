@@ -180,7 +180,11 @@ var AlbEc2Stack string = `
 					  "Fn::Join": [
 						"",
 						[
-						  "arn:aws:ssm:eu-west-1:642631414762:parameter/",
+						  "arn:aws:ssm:eu-west-1:",
+						  {
+							"Ref": "AWS::AccountId"
+						  },
+						  ":parameter/",
 						  {
 							"Ref": "App"
 						  },

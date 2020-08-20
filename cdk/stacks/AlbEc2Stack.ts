@@ -153,7 +153,9 @@ export class AlbEc2Stack extends cdk.Stack {
                         new iam.PolicyStatement({
                             effect: iam.Effect.ALLOW,
                             resources: [
-                                `arn:aws:ssm:eu-west-1:642631414762:parameter/${
+                                `arn:aws:ssm:eu-west-1:${
+                                    this.account
+                                }:parameter/${
                                     tags.app.valueAsString
                                 }/${cdk.Fn.findInMap(
                                     "stages",
