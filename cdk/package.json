@@ -5,12 +5,19 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "synth": "cdk synth"
+    "synth": "cdk synth --json"
   },
   "dependencies": {
     "@aws-cdk/aws-autoscaling": "^1.56.0",
+    "@aws-cdk/aws-cloudwatch-actions": "^1.63.0",
     "@aws-cdk/aws-ec2": "^1.56.0",
+    "@aws-cdk/aws-ecr": "^1.63.0",
     "@aws-cdk/aws-elasticloadbalancingv2": "^1.56.0",
-    "@types/node": "^14.0.27"
+    "@aws-cdk/aws-events-targets": "^1.63.0",
+    "@aws-cdk/aws-stepfunctions": "^1.63.0",
+    "@aws-cdk/aws-stepfunctions-tasks": "^1.63.0",
+    "@types/node": "^14.0.27",
+    "cdk": "^1.63.0",
+    "typescript": "^4.0.2"
   }
 }
