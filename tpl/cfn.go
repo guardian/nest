@@ -676,7 +676,7 @@ var AlbEc2Stack string = `
   }
 `
 
-var FargateScheduleTask string = `
+var FargateScheduledTask string = `
 {
 	"Parameters": {
 	  "Stack": {

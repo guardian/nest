@@ -54,7 +54,7 @@ export class FargateScheduledTask extends Stack {
             description: "Email address to receive alerts if the task fails",
         });
 
-        const repository = Repository.fromRepositoryName(this, 'Repository', tags.app.valueAsString);
+        const repository = Repository.fromRepositoryName(this, 'Repository', `${tags.stack.valueAsString}-${tags.app.valueAsString}`);
 
         const taskDefinition = new TaskDefinition(this, 'TaskDefinition', {
             compatibility: Compatibility.FARGATE,

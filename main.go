@@ -56,8 +56,24 @@ alb-ec2-service
   in order to specify the required parameter values - i.e. for things
   like the VPC ID and subnets.
 
-  Use the naming convention: STACK-APP-STAGE
+  Use the naming convention: <STACK>-<APP>-<STAGE>
   (e.g. frontend-nest-PROD).
+
+fargate-scheduled-task
+  Run a task on a schedule. It expects a Dockerfile in your root
+  directory that runs the task. Riff-Raff integration will deploy the
+  entire generated Cloudformation template, setting the BuildId parameter
+  to the version deployed.
+
+  Logging is provided via Cloudwatch Logs (container output is
+  redirected here). You may want to forward this on to the Guardian
+  ELK stack from Cloudwatch.
+
+  At the moment there are a couple of manual steps:
+	- Create an ECR repository named <STACK>-<APP> (eg frontend-nest)
+	- Manually deploy the Cloudformation stack before deploying via Riff-Raff
+	  - Use 'nest build' to generate it
+	  - This is required to specify parameter values (VPC ID, subnets)
 `
 
 func main() {
@@ -136,12 +152,7 @@ func uploadArtifact(c config.Config) {
 }
 
 // https://riffraff.gutools.co.uk/docs/reference/s3-artifact-layout.md
-func buildArtifact(c config.Config) {
-	if c.DeploymentType != "alb-ec2-service" {
-		fmt.Printf("unsupported deployment type: %s\n", c.DeploymentType)
-		os.Exit(1)
-	}
-
+func buildAlbEc2ServiceArtifact(c config.Config) {
 	// TODO clean ./target dir first
 
 	artifactFile := "app.tar.gz"
@@ -155,7 +166,7 @@ func buildArtifact(c config.Config) {
 	saveOut, err := exec.Command("bash", "-c", fmt.Sprintf("docker save %s:latest | gzip > %s", c.App, artifactFile)).Output()
 	check(err, fmt.Sprintf("Unable to save Docker image: %s.", string(saveOut)))
 
-	tmpl, _ := template.New("riffraff").Parse(tpl.RiffRaff)
+	tmpl, _ := template.New("riffraff").Parse(tpl.RiffRaffAlbEc2Service)
 
 	rr := bytes.Buffer{}
 	cfnStackName := c.CloudformationStackName
@@ -174,6 +185,49 @@ func buildArtifact(c config.Config) {
 
 	err = os.Rename(artifactFile, filepath.Join(target, c.App, artifactFile))
 	check(err, "Unable to move artifact.")
+}
+
+func buildFargateScheduledTaskArtifact(c config.Config) {
+	buildNumber := "unknown"
+	buildInfo, err := getBuildInfo(c)
+	if err == nil {
+		buildNumber = buildInfo.BuildNumber
+	}
+
+	makeDir(target, c.App)
+	makeDir(target, "cfn")
+
+	containerTag := fmt.Sprintf("%s.dkr.ecr.eu-west-1/%s:%s", c.AccountId, c.App, buildNumber)
+
+	buildOut, err := exec.Command("docker", "build", "-t", containerTag, ".").Output()
+	check(err, fmt.Sprintf("Unable to build Docker image: %s.", string(buildOut)))
+
+	tmpl, _ := template.New("riffraff").Parse(tpl.RiffRaffFargateScheduledTask)
+
+	rr := bytes.Buffer{}
+	tmpl.Execute(&rr, info{App: c.App, Stack: c.Stack})
+	rrOutput, err := ioutil.ReadAll(&rr)
+	check(err, "Unable to read Riffraff template output.")
+
+	err = ioutil.WriteFile(filepath.Join(target, "riff-raff.yaml"), rrOutput, os.ModePerm)
+	check(err, "Unable to write riff-raff.yaml file.")
+
+	err = ioutil.WriteFile(filepath.Join(target, "cfn", "cfn.yaml"), []byte(tpl.FargateScheduledTask), os.ModePerm)
+	check(err, "Unable to write cfn.yaml file.")
+}
+
+func buildArtifact(c config.Config) {
+	switch c.DeploymentType {
+		case "alb-ec2-service":
+			buildAlbEc2ServiceArtifact(c)
+
+		case "fargate-scheduled-task":
+			buildFargateScheduledTaskArtifact(c)
+
+		default:
+			fmt.Printf("unsupported deployment type: %s\n", c.DeploymentType)
+			os.Exit(1)
+	}
 }
 
 func makeDir(target, folder string) {
