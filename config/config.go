@@ -10,11 +10,15 @@ import (
 
 // Config is the type of a Nest config file (typically nest.json).
 type Config struct {
+	// Common
 	App            string `json:"app"`
 	Stack          string `json:"stack"`
 	VCSURL         string `json:"vcsURL"`
 	DeploymentType string `json:"deploymentType"`
 	ArtifactBucket string `json:"artifactBucket"`
+
+	// FargateScheduledTask
+	AccountId string `json:"accountId"`
 
 	// Note, leave empty to use the default. This is really for migrations only.
 	CloudformationStackName string `json:"cloudformationStackName"`
@@ -50,11 +54,21 @@ func InitConfig() error {
 	VCSURL, _, _ := reader.ReadLine()
 	config.VCSURL = string(VCSURL)
 
-	fmt.Print("Enter artifact bucket: ")
-	bucket, _, _ := reader.ReadLine()
-	config.ArtifactBucket = string(bucket)
+	fmt.Print("Enter deployment type [alb-ec2-service, fargate-scheduled-task]: ")
+	deploymentType, _, _ := reader.ReadLine()
+	config.DeploymentType = string(deploymentType)
 
-	config.DeploymentType = "alb-ec2-service"
+	switch config.DeploymentType {
+		case "fargate-scheduled-task":
+			fmt.Print("Enter AWS account ID: ")
+			accountId, _, _ := reader.ReadLine()
+			config.AccountId = string(accountId)
+
+		case "alb-ec2-service":
+			fmt.Print("Enter artifact bucket: ")
+			bucket, _, _ := reader.ReadLine()
+			config.ArtifactBucket = string(bucket)
+	}
 
 	data, _ := json.MarshalIndent(config, "", "    ")
 

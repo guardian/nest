@@ -675,3 +675,750 @@ var AlbEc2Stack string = `
 	}
   }
 `
+
+var FargateScheduledTask string = `
+{
+	"Parameters": {
+	  "Stack": {
+		"Type": "String",
+		"Default": "frontend"
+	  },
+	  "Stage": {
+		"Type": "String",
+		"Default": "PROD"
+	  },
+	  "App": {
+		"Type": "String"
+	  },
+	  "BuildId": {
+		"Type": "String"
+	  },
+	  "TaskDefinitionCPU": {
+		"Type": "String",
+		"Default": "2048"
+	  },
+	  "TaskDefinitionMemory": {
+		"Type": "String",
+		"Default": "4096"
+	  },
+	  "VpcId": {
+		"Type": "AWS::EC2::VPC::Id",
+		"Description": "VPC in which the task will run"
+	  },
+	  "PrivateSubnet": {
+		"Type": "AWS::EC2::Subnet::Id",
+		"Description": "A private subnet (from the VPC) in which the task will run"
+	  },
+	  "AZ": {
+		"Type": "AWS::EC2::AvailabilityZone::Name",
+		"Description": "The availability zone where the private subnet resides"
+	  },
+	  "AlertEmail": {
+		"Type": "String",
+		"Description": "Email address to receive alerts if the task fails"
+	  }
+	},
+	"Resources": {
+	  "TaskDefinitionTaskRoleFD40A61D": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+		  "AssumeRolePolicyDocument": {
+			"Statement": [
+			  {
+				"Action": "sts:AssumeRole",
+				"Effect": "Allow",
+				"Principal": {
+				  "Service": "ecs-tasks.amazonaws.com"
+				}
+			  }
+			],
+			"Version": "2012-10-17"
+		  },
+		  "Tags": [
+			{
+			  "Key": "App",
+			  "Value": {
+				"Ref": "App"
+			  }
+			},
+			{
+			  "Key": "Stack",
+			  "Value": {
+				"Ref": "Stack"
+			  }
+			},
+			{
+			  "Key": "Stage",
+			  "Value": {
+				"Ref": "Stage"
+			  }
+			}
+		  ]
+		},
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/TaskDefinition/TaskRole/Resource"
+		}
+	  },
+	  "TaskDefinitionB36D86D9": {
+		"Type": "AWS::ECS::TaskDefinition",
+		"Properties": {
+		  "ContainerDefinitions": [
+			{
+			  "Essential": true,
+			  "Image": {
+				"Fn::Join": [
+				  "",
+				  [
+					{
+					  "Ref": "AWS::AccountId"
+					},
+					".dkr.ecr.eu-west-1.",
+					{
+					  "Ref": "AWS::URLSuffix"
+					},
+					"/",
+					{
+					  "Ref": "App"
+					},
+					":",
+					{
+					  "Ref": "BuildId"
+					}
+				  ]
+				]
+			  },
+			  "LogConfiguration": {
+				"LogDriver": "awslogs",
+				"Options": {
+				  "awslogs-group": {
+					"Ref": "TaskDefinitionContainerLogGroup4D0A87C1"
+				  },
+				  "awslogs-stream-prefix": "tags.app.valueAsString",
+				  "awslogs-region": "eu-west-1"
+				}
+			  },
+			  "Name": "Container"
+			}
+		  ],
+		  "Cpu": {
+			"Ref": "TaskDefinitionCPU"
+		  },
+		  "ExecutionRoleArn": {
+			"Fn::GetAtt": [
+			  "TaskDefinitionExecutionRole8D61C2FB",
+			  "Arn"
+			]
+		  },
+		  "Family": "FargateScheduledTaskTaskDefinition942C1AD1",
+		  "Memory": {
+			"Ref": "TaskDefinitionMemory"
+		  },
+		  "NetworkMode": "awsvpc",
+		  "RequiresCompatibilities": [
+			"FARGATE"
+		  ],
+		  "Tags": [
+			{
+			  "Key": "App",
+			  "Value": {
+				"Ref": "App"
+			  }
+			},
+			{
+			  "Key": "Stack",
+			  "Value": {
+				"Ref": "Stack"
+			  }
+			},
+			{
+			  "Key": "Stage",
+			  "Value": {
+				"Ref": "Stage"
+			  }
+			}
+		  ],
+		  "TaskRoleArn": {
+			"Fn::GetAtt": [
+			  "TaskDefinitionTaskRoleFD40A61D",
+			  "Arn"
+			]
+		  }
+		},
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/TaskDefinition/Resource"
+		}
+	  },
+	  "TaskDefinitionContainerLogGroup4D0A87C1": {
+		"Type": "AWS::Logs::LogGroup",
+		"Properties": {
+		  "RetentionInDays": 14
+		},
+		"UpdateReplacePolicy": "Retain",
+		"DeletionPolicy": "Retain",
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/TaskDefinition/Container/LogGroup/Resource"
+		}
+	  },
+	  "TaskDefinitionExecutionRole8D61C2FB": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+		  "AssumeRolePolicyDocument": {
+			"Statement": [
+			  {
+				"Action": "sts:AssumeRole",
+				"Effect": "Allow",
+				"Principal": {
+				  "Service": "ecs-tasks.amazonaws.com"
+				}
+			  }
+			],
+			"Version": "2012-10-17"
+		  },
+		  "Tags": [
+			{
+			  "Key": "App",
+			  "Value": {
+				"Ref": "App"
+			  }
+			},
+			{
+			  "Key": "Stack",
+			  "Value": {
+				"Ref": "Stack"
+			  }
+			},
+			{
+			  "Key": "Stage",
+			  "Value": {
+				"Ref": "Stage"
+			  }
+			}
+		  ]
+		},
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/TaskDefinition/ExecutionRole/Resource"
+		}
+	  },
+	  "TaskDefinitionExecutionRoleDefaultPolicy1F3406F5": {
+		"Type": "AWS::IAM::Policy",
+		"Properties": {
+		  "PolicyDocument": {
+			"Statement": [
+			  {
+				"Action": [
+				  "ecr:BatchCheckLayerAvailability",
+				  "ecr:GetDownloadUrlForLayer",
+				  "ecr:BatchGetImage"
+				],
+				"Effect": "Allow",
+				"Resource": {
+				  "Fn::Join": [
+					"",
+					[
+					  "arn:",
+					  {
+						"Ref": "AWS::Partition"
+					  },
+					  ":ecr:eu-west-1:",
+					  {
+						"Ref": "AWS::AccountId"
+					  },
+					  ":repository/",
+					  {
+						"Ref": "App"
+					  }
+					]
+				  ]
+				}
+			  },
+			  {
+				"Action": "ecr:GetAuthorizationToken",
+				"Effect": "Allow",
+				"Resource": "*"
+			  },
+			  {
+				"Action": [
+				  "logs:CreateLogStream",
+				  "logs:PutLogEvents"
+				],
+				"Effect": "Allow",
+				"Resource": {
+				  "Fn::GetAtt": [
+					"TaskDefinitionContainerLogGroup4D0A87C1",
+					"Arn"
+				  ]
+				}
+			  }
+			],
+			"Version": "2012-10-17"
+		  },
+		  "PolicyName": "TaskDefinitionExecutionRoleDefaultPolicy1F3406F5",
+		  "Roles": [
+			{
+			  "Ref": "TaskDefinitionExecutionRole8D61C2FB"
+			}
+		  ]
+		},
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/TaskDefinition/ExecutionRole/DefaultPolicy/Resource"
+		}
+	  },
+	  "TaskSecurityGroup7A9820DB": {
+		"Type": "AWS::EC2::SecurityGroup",
+		"Properties": {
+		  "GroupDescription": "FargateScheduledTask/Task/SecurityGroup",
+		  "SecurityGroupEgress": [
+			{
+			  "CidrIp": "0.0.0.0/0",
+			  "Description": "Allow all outbound traffic by default",
+			  "IpProtocol": "-1"
+			}
+		  ],
+		  "Tags": [
+			{
+			  "Key": "App",
+			  "Value": {
+				"Ref": "App"
+			  }
+			},
+			{
+			  "Key": "Stack",
+			  "Value": {
+				"Ref": "Stack"
+			  }
+			},
+			{
+			  "Key": "Stage",
+			  "Value": {
+				"Ref": "Stage"
+			  }
+			}
+		  ],
+		  "VpcId": {
+			"Ref": "VpcId"
+		  }
+		},
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/Task/SecurityGroup/Resource"
+		}
+	  },
+	  "StateMachineRoleB840431D": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+		  "AssumeRolePolicyDocument": {
+			"Statement": [
+			  {
+				"Action": "sts:AssumeRole",
+				"Effect": "Allow",
+				"Principal": {
+				  "Service": "states.eu-west-1.amazonaws.com"
+				}
+			  }
+			],
+			"Version": "2012-10-17"
+		  },
+		  "Tags": [
+			{
+			  "Key": "App",
+			  "Value": {
+				"Ref": "App"
+			  }
+			},
+			{
+			  "Key": "Stack",
+			  "Value": {
+				"Ref": "Stack"
+			  }
+			},
+			{
+			  "Key": "Stage",
+			  "Value": {
+				"Ref": "Stage"
+			  }
+			}
+		  ]
+		},
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/StateMachine/Role/Resource"
+		}
+	  },
+	  "StateMachineRoleDefaultPolicyDF1E6607": {
+		"Type": "AWS::IAM::Policy",
+		"Properties": {
+		  "PolicyDocument": {
+			"Statement": [
+			  {
+				"Action": "ecs:RunTask",
+				"Effect": "Allow",
+				"Resource": {
+				  "Ref": "TaskDefinitionB36D86D9"
+				}
+			  },
+			  {
+				"Action": [
+				  "ecs:StopTask",
+				  "ecs:DescribeTasks"
+				],
+				"Effect": "Allow",
+				"Resource": "*"
+			  },
+			  {
+				"Action": "iam:PassRole",
+				"Effect": "Allow",
+				"Resource": [
+				  {
+					"Fn::GetAtt": [
+					  "TaskDefinitionTaskRoleFD40A61D",
+					  "Arn"
+					]
+				  },
+				  {
+					"Fn::GetAtt": [
+					  "TaskDefinitionExecutionRole8D61C2FB",
+					  "Arn"
+					]
+				  }
+				]
+			  },
+			  {
+				"Action": [
+				  "events:PutTargets",
+				  "events:PutRule",
+				  "events:DescribeRule"
+				],
+				"Effect": "Allow",
+				"Resource": {
+				  "Fn::Join": [
+					"",
+					[
+					  "arn:",
+					  {
+						"Ref": "AWS::Partition"
+					  },
+					  ":events:eu-west-1:",
+					  {
+						"Ref": "AWS::AccountId"
+					  },
+					  ":rule/StepFunctionsGetEventsForECSTaskRule"
+					]
+				  ]
+				}
+			  }
+			],
+			"Version": "2012-10-17"
+		  },
+		  "PolicyName": "StateMachineRoleDefaultPolicyDF1E6607",
+		  "Roles": [
+			{
+			  "Ref": "StateMachineRoleB840431D"
+			}
+		  ]
+		},
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/StateMachine/Role/DefaultPolicy/Resource"
+		}
+	  },
+	  "StateMachine2E01A3A5": {
+		"Type": "AWS::StepFunctions::StateMachine",
+		"Properties": {
+		  "RoleArn": {
+			"Fn::GetAtt": [
+			  "StateMachineRoleB840431D",
+			  "Arn"
+			]
+		  },
+		  "DefinitionString": {
+			"Fn::Join": [
+			  "",
+			  [
+				"{\"StartAt\":\"Task\",\"States\":{\"Task\":{\"End\":true,\"Parameters\":{\"Cluster\":\"arn:",
+				{
+				  "Ref": "AWS::Partition"
+				},
+				":ecs:eu-west-1:",
+				{
+				  "Ref": "AWS::AccountId"
+				},
+				":cluster/default\",\"TaskDefinition\":\"",
+				{
+				  "Ref": "TaskDefinitionB36D86D9"
+				},
+				"\",\"NetworkConfiguration\":{\"AwsvpcConfiguration\":{\"Subnets\":[\"",
+				{
+				  "Ref": "PrivateSubnet"
+				},
+				"\"],\"SecurityGroups\":[\"",
+				{
+				  "Fn::GetAtt": [
+					"TaskSecurityGroup7A9820DB",
+					"GroupId"
+				  ]
+				},
+				"\"]}},\"LaunchType\":\"FARGATE\"},\"Type\":\"Task\",\"Resource\":\"arn:",
+				{
+				  "Ref": "AWS::Partition"
+				},
+				":states:::ecs:runTask.sync\",\"ResultPath\":null,\"TimeoutSeconds\":300}}}"
+			  ]
+			]
+		  },
+		  "Tags": [
+			{
+			  "Key": "App",
+			  "Value": {
+				"Ref": "App"
+			  }
+			},
+			{
+			  "Key": "Stack",
+			  "Value": {
+				"Ref": "Stack"
+			  }
+			},
+			{
+			  "Key": "Stage",
+			  "Value": {
+				"Ref": "Stage"
+			  }
+			}
+		  ]
+		},
+		"DependsOn": [
+		  "StateMachineRoleDefaultPolicyDF1E6607",
+		  "StateMachineRoleB840431D"
+		],
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/StateMachine/Resource"
+		}
+	  },
+	  "StateMachineEventsRoleDBCDECD1": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+		  "AssumeRolePolicyDocument": {
+			"Statement": [
+			  {
+				"Action": "sts:AssumeRole",
+				"Effect": "Allow",
+				"Principal": {
+				  "Service": "events.amazonaws.com"
+				}
+			  }
+			],
+			"Version": "2012-10-17"
+		  },
+		  "Tags": [
+			{
+			  "Key": "App",
+			  "Value": {
+				"Ref": "App"
+			  }
+			},
+			{
+			  "Key": "Stack",
+			  "Value": {
+				"Ref": "Stack"
+			  }
+			},
+			{
+			  "Key": "Stage",
+			  "Value": {
+				"Ref": "Stage"
+			  }
+			}
+		  ]
+		},
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/StateMachine/EventsRole/Resource"
+		}
+	  },
+	  "StateMachineEventsRoleDefaultPolicyFB602CA9": {
+		"Type": "AWS::IAM::Policy",
+		"Properties": {
+		  "PolicyDocument": {
+			"Statement": [
+			  {
+				"Action": "states:StartExecution",
+				"Effect": "Allow",
+				"Resource": {
+				  "Ref": "StateMachine2E01A3A5"
+				}
+			  }
+			],
+			"Version": "2012-10-17"
+		  },
+		  "PolicyName": "StateMachineEventsRoleDefaultPolicyFB602CA9",
+		  "Roles": [
+			{
+			  "Ref": "StateMachineEventsRoleDBCDECD1"
+			}
+		  ]
+		},
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/StateMachine/EventsRole/DefaultPolicy/Resource"
+		}
+	  },
+	  "ScheduleRuleDA5BD877": {
+		"Type": "AWS::Events::Rule",
+		"Properties": {
+		  "ScheduleExpression": "cron(30 7 * * ? *)",
+		  "State": "ENABLED",
+		  "Targets": [
+			{
+			  "Arn": {
+				"Ref": "StateMachine2E01A3A5"
+			  },
+			  "Id": "Target0",
+			  "RoleArn": {
+				"Fn::GetAtt": [
+				  "StateMachineEventsRoleDBCDECD1",
+				  "Arn"
+				]
+			  }
+			}
+		  ]
+		},
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/ScheduleRule/Resource"
+		}
+	  },
+	  "AlarmSnsTopicEF9DE06A": {
+		"Type": "AWS::SNS::Topic",
+		"Properties": {
+		  "Tags": [
+			{
+			  "Key": "App",
+			  "Value": {
+				"Ref": "App"
+			  }
+			},
+			{
+			  "Key": "Stack",
+			  "Value": {
+				"Ref": "Stack"
+			  }
+			},
+			{
+			  "Key": "Stage",
+			  "Value": {
+				"Ref": "Stage"
+			  }
+			}
+		  ]
+		},
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/AlarmSnsTopic/Resource"
+		}
+	  },
+	  "AlarmSnsTopicTokenSubscription1484F6BE3": {
+		"Type": "AWS::SNS::Subscription",
+		"Properties": {
+		  "Protocol": "email",
+		  "TopicArn": {
+			"Ref": "AlarmSnsTopicEF9DE06A"
+		  },
+		  "Endpoint": {
+			"Ref": "AlertEmail"
+		  }
+		},
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/AlarmSnsTopic/TokenSubscription:1/Resource"
+		}
+	  },
+	  "ExecutionsFailedAlarmCA489332": {
+		"Type": "AWS::CloudWatch::Alarm",
+		"Properties": {
+		  "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+		  "EvaluationPeriods": 1,
+		  "ActionsEnabled": true,
+		  "AlarmActions": [
+			{
+			  "Ref": "AlarmSnsTopicEF9DE06A"
+			}
+		  ],
+		  "AlarmDescription": {
+			"Fn::Join": [
+			  "",
+			  [
+				{
+				  "Ref": "App"
+				},
+				" failed"
+			  ]
+			]
+		  },
+		  "Dimensions": [
+			{
+			  "Name": "StateMachineArn",
+			  "Value": {
+				"Ref": "StateMachine2E01A3A5"
+			  }
+			}
+		  ],
+		  "MetricName": "ExecutionsFailed",
+		  "Namespace": "AWS/States",
+		  "Period": 3600,
+		  "Statistic": "Sum",
+		  "Threshold": 1,
+		  "TreatMissingData": "notBreaching"
+		},
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/ExecutionsFailedAlarm/Resource"
+		}
+	  },
+	  "TimeoutAlarm4022815E": {
+		"Type": "AWS::CloudWatch::Alarm",
+		"Properties": {
+		  "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+		  "EvaluationPeriods": 1,
+		  "ActionsEnabled": true,
+		  "AlarmActions": [
+			{
+			  "Ref": "AlarmSnsTopicEF9DE06A"
+			}
+		  ],
+		  "AlarmDescription": {
+			"Fn::Join": [
+			  "",
+			  [
+				{
+				  "Ref": "App"
+				},
+				" timed out"
+			  ]
+			]
+		  },
+		  "Dimensions": [
+			{
+			  "Name": "StateMachineArn",
+			  "Value": {
+				"Ref": "StateMachine2E01A3A5"
+			  }
+			}
+		  ],
+		  "MetricName": "ExecutionsTimedOut",
+		  "Namespace": "AWS/States",
+		  "Period": 3600,
+		  "Statistic": "Sum",
+		  "Threshold": 1,
+		  "TreatMissingData": "notBreaching"
+		},
+		"Metadata": {
+		  "aws:cdk:path": "FargateScheduledTask/TimeoutAlarm/Resource"
+		}
+	  },
+	  "CDKMetadata": {
+		"Type": "AWS::CDK::Metadata",
+		"Properties": {
+		  "Modules": "aws-cdk=1.63.0,@aws-cdk/assets=1.63.0,@aws-cdk/aws-applicationautoscaling=1.63.0,@aws-cdk/aws-autoscaling=1.63.0,@aws-cdk/aws-autoscaling-common=1.63.0,@aws-cdk/aws-autoscaling-hooktargets=1.63.0,@aws-cdk/aws-cloudwatch=1.63.0,@aws-cdk/aws-cloudwatch-actions=1.63.0,@aws-cdk/aws-codebuild=1.63.0,@aws-cdk/aws-codeguruprofiler=1.63.0,@aws-cdk/aws-ec2=1.63.0,@aws-cdk/aws-ecr=1.63.0,@aws-cdk/aws-ecr-assets=1.63.0,@aws-cdk/aws-ecs=1.63.0,@aws-cdk/aws-elasticloadbalancingv2=1.63.0,@aws-cdk/aws-events=1.63.0,@aws-cdk/aws-events-targets=1.63.0,@aws-cdk/aws-iam=1.63.0,@aws-cdk/aws-kms=1.63.0,@aws-cdk/aws-lambda=1.63.0,@aws-cdk/aws-logs=1.63.0,@aws-cdk/aws-s3=1.63.0,@aws-cdk/aws-s3-assets=1.63.0,@aws-cdk/aws-servicediscovery=1.63.0,@aws-cdk/aws-sns=1.63.0,@aws-cdk/aws-sns-subscriptions=1.63.0,@aws-cdk/aws-sqs=1.63.0,@aws-cdk/aws-ssm=1.63.0,@aws-cdk/aws-stepfunctions=1.63.0,@aws-cdk/aws-stepfunctions-tasks=1.63.0,@aws-cdk/cloud-assembly-schema=1.63.0,@aws-cdk/core=1.63.0,@aws-cdk/custom-resources=1.63.0,@aws-cdk/cx-api=1.63.0,@aws-cdk/region-info=1.63.0,jsii-runtime=node.js/v12.17.0"
+		}
+	  }
+	},
+	"Outputs": {
+	  "StateMachineArn": {
+		"Value": {
+		  "Ref": "StateMachine2E01A3A5"
+		}
+	  }
+	}
+  }
+`
