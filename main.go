@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"text/template"
 	"time"
@@ -149,11 +150,11 @@ func buildArtifact(c config.Config) {
 	makeDir(target, c.App)
 	makeDir(target, "cfn")
 
-	//buildOut, err := exec.Command("docker", "build", "-t", fmt.Sprintf("%s:latest", c.App), ".").Output()
-	//check(err, fmt.Sprintf("Unable to build Docker image: %s.", string(buildOut)))
-	//
-	//saveOut, err := exec.Command("bash", "-c", fmt.Sprintf("docker save %s:latest | gzip > %s", c.App, artifactFile)).Output()
-	//check(err, fmt.Sprintf("Unable to save Docker image: %s.", string(saveOut)))
+	buildOut, err := exec.Command("docker", "build", "-t", fmt.Sprintf("%s:latest", c.App), ".").Output()
+	check(err, fmt.Sprintf("Unable to build Docker image: %s.", string(buildOut)))
+
+	saveOut, err := exec.Command("bash", "-c", fmt.Sprintf("docker save %s:latest | gzip > %s", c.App, artifactFile)).Output()
+	check(err, fmt.Sprintf("Unable to save Docker image: %s.", string(saveOut)))
 
 	tmpl, _ := template.New("riffraff").Parse(tpl.RiffRaff)
 
