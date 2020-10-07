@@ -7,17 +7,15 @@ Parameters:
     Default: 'Test'
 
 Resources:
-  TestPolicy:
-    Type: 'AWS::IAM::Policy'
+  AppRole:
+    Type: AWS::IAM::Role
     Properties:
-      PolicyName: TestPolicy
-      PolicyDocument:
+      Path: "/"
+      AssumeRolePolicyDocument:
         Statement:
-          - Action:
-              - s3:Get*
-            Effect: Allow
-            Resource:
-              - Fn::Join:
-                  - ''
-                  - - 'arn:aws:s3:::'
-                    - 'com-gu-gap'
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
