@@ -11,7 +11,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"text/template"
 	"time"
@@ -26,6 +25,7 @@ type info struct {
 	Bucket                  string
 	CloudformationStackName string
 	Stack                   string
+	CustomCloudformation	bool
 }
 
 var target string = "target"
@@ -149,11 +149,11 @@ func buildArtifact(c config.Config) {
 	makeDir(target, c.App)
 	makeDir(target, "cfn")
 
-	buildOut, err := exec.Command("docker", "build", "-t", fmt.Sprintf("%s:latest", c.App), ".").Output()
-	check(err, fmt.Sprintf("Unable to build Docker image: %s.", string(buildOut)))
-
-	saveOut, err := exec.Command("bash", "-c", fmt.Sprintf("docker save %s:latest | gzip > %s", c.App, artifactFile)).Output()
-	check(err, fmt.Sprintf("Unable to save Docker image: %s.", string(saveOut)))
+	//buildOut, err := exec.Command("docker", "build", "-t", fmt.Sprintf("%s:latest", c.App), ".").Output()
+	//check(err, fmt.Sprintf("Unable to build Docker image: %s.", string(buildOut)))
+	//
+	//saveOut, err := exec.Command("bash", "-c", fmt.Sprintf("docker save %s:latest | gzip > %s", c.App, artifactFile)).Output()
+	//check(err, fmt.Sprintf("Unable to save Docker image: %s.", string(saveOut)))
 
 	tmpl, _ := template.New("riffraff").Parse(tpl.RiffRaff)
 
@@ -162,7 +162,7 @@ func buildArtifact(c config.Config) {
 	if cfnStackName == "" {
 		cfnStackName = c.App
 	}
-	tmpl.Execute(&rr, info{App: c.App, Bucket: c.ArtifactBucket, CloudformationStackName: cfnStackName, Stack: c.Stack})
+	tmpl.Execute(&rr, info{App: c.App, Bucket: c.ArtifactBucket, CloudformationStackName: cfnStackName, Stack: c.Stack, CustomCloudformation: c.CustomCloudformation != ""})
 	rrOutput, err := ioutil.ReadAll(&rr)
 	check(err, "Unable to read Riffraff template output.")
 
@@ -171,6 +171,14 @@ func buildArtifact(c config.Config) {
 
 	err = ioutil.WriteFile(filepath.Join(target, "cfn", "cfn.yaml"), []byte(tpl.AlbEc2Stack), os.ModePerm)
 	check(err, "Unable to write cfn.yaml file.")
+
+	if c.CustomCloudformation != "" {
+		makeDir(target, "customCfn")
+		customCfn, err := ioutil.ReadFile(c.CustomCloudformation)
+		check(err, "Unable to read custom cloudformation file.")
+		err = ioutil.WriteFile(target+"/customCfn/cfn-custom.yaml", customCfn, os.ModePerm)
+		check(err, "Unable to write cfn-custom.yaml file.")
+	}
 
 	err = os.Rename(artifactFile, filepath.Join(target, c.App, artifactFile))
 	check(err, "Unable to move artifact.")
