@@ -16,6 +16,15 @@ deployments:
             amiTags:
                 Recipe: amazon-linux-2-x86-docker
                 AmigoStage: PROD
+    {{if .CustomCloudformation}}
+    customCfn:
+        type: cloud-formation
+        app: {{.App}}
+        parameters:
+            cloudFormationStackName: {{.CloudformationStackName}}-custom
+            templatePath: cfn-custom.yaml
+            cloudFormationStackByTags: false
+    {{end}}
     {{.App}}:
         type: autoscaling
         dependencies: [cfn]

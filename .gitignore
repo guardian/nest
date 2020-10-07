@@ -3,3 +3,4 @@ artifact
 app.tar.gz
 node_modules
 cdk.out
+.idea/

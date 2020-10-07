@@ -3,5 +3,6 @@
     "stack": "frontend",
     "vcsURL": "https://github.com/guardian/nest",
     "deploymentType": "alb-ec2-service",
-    "artifactBucket": "aws-frontend-artifacts"
+    "artifactBucket": "aws-frontend-artifacts",
+    "customCloudformation": "my-cfn.yaml"
 }

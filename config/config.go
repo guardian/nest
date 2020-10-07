@@ -10,11 +10,12 @@ import (
 
 // Config is the type of a Nest config file (typically nest.json).
 type Config struct {
-	App            string `json:"app"`
-	Stack          string `json:"stack"`
-	VCSURL         string `json:"vcsURL"`
-	DeploymentType string `json:"deploymentType"`
-	ArtifactBucket string `json:"artifactBucket"`
+	App                  string `json:"app"`
+	Stack                string `json:"stack"`
+	VCSURL               string `json:"vcsURL"`
+	DeploymentType       string `json:"deploymentType"`
+	ArtifactBucket       string `json:"artifactBucket"`
+	CustomCloudformation string `json:"customCloudformation"`
 
 	// Note, leave empty to use the default. This is really for migrations only.
 	CloudformationStackName string `json:"cloudformationStackName"`

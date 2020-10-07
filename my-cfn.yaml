@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: testing
+
+Parameters:
+  App:
+    Type: String
+    Default: 'Test'
+
+Resources:
+  AppRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: "/"
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole

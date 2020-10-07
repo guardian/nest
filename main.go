@@ -26,6 +26,7 @@ type info struct {
 	Bucket                  string
 	CloudformationStackName string
 	Stack                   string
+	CustomCloudformation	bool
 }
 
 var target string = "target"
@@ -162,7 +163,7 @@ func buildArtifact(c config.Config) {
 	if cfnStackName == "" {
 		cfnStackName = c.App
 	}
-	tmpl.Execute(&rr, info{App: c.App, Bucket: c.ArtifactBucket, CloudformationStackName: cfnStackName, Stack: c.Stack})
+	tmpl.Execute(&rr, info{App: c.App, Bucket: c.ArtifactBucket, CloudformationStackName: cfnStackName, Stack: c.Stack, CustomCloudformation: c.CustomCloudformation != ""})
 	rrOutput, err := ioutil.ReadAll(&rr)
 	check(err, "Unable to read Riffraff template output.")
 
@@ -171,6 +172,14 @@ func buildArtifact(c config.Config) {
 
 	err = ioutil.WriteFile(filepath.Join(target, "cfn", "cfn.yaml"), []byte(tpl.AlbEc2Stack), os.ModePerm)
 	check(err, "Unable to write cfn.yaml file.")
+
+	if c.CustomCloudformation != "" {
+		makeDir(target, "customCfn")
+		customCfn, err := ioutil.ReadFile(c.CustomCloudformation)
+		check(err, "Unable to read custom cloudformation file.")
+		err = ioutil.WriteFile(target+"/customCfn/cfn-custom.yaml", customCfn, os.ModePerm)
+		check(err, "Unable to write cfn-custom.yaml file.")
+	}
 
 	err = os.Rename(artifactFile, filepath.Join(target, c.App, artifactFile))
 	check(err, "Unable to move artifact.")
