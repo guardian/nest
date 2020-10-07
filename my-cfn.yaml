@@ -10,7 +10,8 @@ Resources:
   TestPolicy:
     Type: 'AWS::IAM::Policy'
     Properties:
-    - PolicyDocument:
+      PolicyName: TestPolicy
+      PolicyDocument:
         Statement:
           - Action:
               - s3:Get*
