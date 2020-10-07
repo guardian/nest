@@ -2,5 +2,11 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: testing
 
 Parameters:
+  App:
+    Type: String
+    Default: 'Test'
 
 Resources:
+  TestPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties: {}
