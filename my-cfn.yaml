@@ -9,4 +9,14 @@ Parameters:
 Resources:
   TestPolicy:
     Type: 'AWS::IAM::Policy'
-    Properties: {}
+    Properties:
+    - PolicyDocument:
+        Statement:
+          - Action:
+              - s3:Get*
+            Effect: Allow
+            Resource:
+              - Fn::Join:
+                  - ''
+                  - - 'arn:aws:s3:::'
+                    - 'com-gu-gap'
