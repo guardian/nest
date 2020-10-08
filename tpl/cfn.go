@@ -25,34 +25,35 @@ var AlbEc2Stack string = `
 	  },
 	  "VpcId": {
 		"Type": "AWS::EC2::VPC::Id",
-		"Description": "VPC in which instances will run"
+		"Description": "VPC in which instances will run. It should have a least one public subnet."
 	  },
 	  "Subnets": {
 		"Type": "List<AWS::EC2::Subnet::Id>",
-		"Description": "Subnets where instances will run"
+		"Description": "(Public) Subnets where instances will run."
 	  },
 	  "AZs": {
 		"Type": "List<AWS::EC2::AvailabilityZone::Name>",
-		"Description": "List of AZs"
+		"Description": "List of AZs. Typically we use eu-west-1a, eu-west-1b, and eu-west-1c here for good availability if one has issues."
 	  },
 	  "AMI": {
 		"Type": "AWS::EC2::Image::Id",
-		"Description": "AMI ID to be provded by RiffRaff. Should include Docker at least. Our Amazon Linux 2 Docker recipe is recommended here."
+		"Description": "AMI ID to be provded by RiffRaff. Must include: docker and also nest-secrets. Our Amazon Linux 2 Docker recipe is recommended here."
 	  },
 	  "S3Bucket": {
 		"Type": "String",
-		"Description": "Name of S3 bucket where artifact found"
+		"Description": "Name of S3 bucket where artifact found. This should be the same as the 'artifactBucket' set in your 'nest.json' file."
 	  },
 	  "S3Key": {
 		"Type": "String",
-		"Description": "S3 key where artifact lives (should be a Docker saved .tar file)"
+		"Description": "S3 key where artifact lives. The required format is: '[stack]/[STAGE]/[app]/app.tar.gz'"
 	  },
 	  "DockerTag": {
 		"Type": "String",
-		"Description": "Once the s3 artifact is docker loaded, this tag is used to determine which container to start"
+		"Description": "Once the s3 artifact is docker loaded, this tag is used to determine which container to start. The required format is: '[app]:latest'."
 	  },
 	  "CertificateArn": {
-		"Type": "String"
+		"Type": "String",
+		"Description": "ARN of certificate used for the ALB. You will need to create this manually (using ACM) unfortunately and also point the corresponding domain at the ALB itself once the stack is created."
 	  },
 	  "MinCapacity": {
 		"Type": "Number",
@@ -66,16 +67,16 @@ var AlbEc2Stack string = `
 	  },
 	  "PolicyARNs": {
 		"Type": "CommaDelimitedList",
-		"Description": "ARNs for managed policies you want included in instance role"
+		"Description": "ARNs for managed policies you want included in instance role (CURRENTLY THIS DOES NOT WORK)."
 	  },
 	  "KMSKey": {
 		"Type": "String",
-		"Description": "KMS key used to decrypt parameter store secrets"
+		"Description": "KMS key used to decrypt parameter store secrets."
 	  },
 	  "TargetCPU": {
 		"Type": "Number",
 		"Default": 80,
-		"Description": "Target CPU, used for autoscaling. Nb. you may want to set this quite low if using Burstable instances such as t3 ones."
+		"Description": "Target CPU, used for autoscaling. Nb. you may want to set this quite low if using burstable instances such as t3 ones to avoid paying for lots of CPU credits."
 	  }
 	},
 	"Mappings": {

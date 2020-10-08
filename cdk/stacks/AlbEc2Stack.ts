@@ -23,44 +23,49 @@ export class AlbEc2Stack extends cdk.Stack {
 
         const vpcId = new cdk.CfnParameter(this, "VpcId", {
             type: "AWS::EC2::VPC::Id",
-            description: "VPC in which instances will run",
+            description:
+                "VPC in which instances will run. It should have a least one public subnet.",
         });
 
         const publicSubnets = new cdk.CfnParameter(this, "Subnets", {
             type: "List<AWS::EC2::Subnet::Id>",
-            description: "Subnets where instances will run",
+            description: "(Public) Subnets where instances will run.",
         });
 
         const availabilityZones = new cdk.CfnParameter(this, "AZs", {
             type: "List<AWS::EC2::AvailabilityZone::Name>",
-            description: "List of AZs",
+            description:
+                "List of AZs. Typically we use eu-west-1a, eu-west-1b, and eu-west-1c here for good availability if one has issues.",
         });
 
         const ami = new cdk.CfnParameter(this, "AMI", {
             type: "AWS::EC2::Image::Id",
             description:
-                "AMI ID to be provded by RiffRaff. Should include Docker at least. Our Amazon Linux 2 Docker recipe is recommended here.",
+                "AMI ID to be provded by RiffRaff. Must include: docker and also nest-secrets. Our Amazon Linux 2 Docker recipe is recommended here.",
         });
 
         const s3Bucket = new cdk.CfnParameter(this, "S3Bucket", {
             type: "String",
-            description: "Name of S3 bucket where artifact found",
+            description:
+                "Name of S3 bucket where artifact found. This should be the same as the 'artifactBucket' set in your 'nest.json' file.",
         });
 
         const s3Key = new cdk.CfnParameter(this, "S3Key", {
             type: "String",
             description:
-                "S3 key where artifact lives (should be a Docker saved .tar file)",
+                "S3 key where artifact lives. The required format is: '[stack]/[STAGE]/[app]/app.tar.gz'",
         });
 
         const tag = new cdk.CfnParameter(this, "DockerTag", {
             type: "String",
             description:
-                "Once the s3 artifact is docker loaded, this tag is used to determine which container to start",
+                "Once the s3 artifact is docker loaded, this tag is used to determine which container to start. The required format is: '[app]:latest'.",
         });
 
         const certificateArn = new cdk.CfnParameter(this, "CertificateArn", {
             type: "String",
+            description:
+                "ARN of certificate used for the ALB. You will need to create this manually (using ACM) unfortunately and also point the corresponding domain at the ALB itself once the stack is created.",
         });
 
         const minCapacity = new cdk.CfnParameter(this, "MinCapacity", {
@@ -80,18 +85,18 @@ export class AlbEc2Stack extends cdk.Stack {
         const rolePolicyARNs = new cdk.CfnParameter(this, "PolicyARNs", {
             type: "CommaDelimitedList",
             description:
-                "ARNs for managed policies you want included in instance role",
+                "ARNs for managed policies you want included in instance role (CURRENTLY THIS DOES NOT WORK).",
         });
 
         const kmsKey = new cdk.CfnParameter(this, "KMSKey", {
             type: "String",
-            description: "KMS key used to decrypt parameter store secrets",
+            description: "KMS key used to decrypt parameter store secrets.",
         });
 
         const targetCPU = new cdk.CfnParameter(this, "TargetCPU", {
             type: "Number",
             description:
-                "Target CPU, used for autoscaling. Nb. you may want to set this quite low if using Burstable instances such as t3 ones.",
+                "Target CPU, used for autoscaling. Nb. you may want to set this quite low if using burstable instances such as t3 ones to avoid paying for lots of CPU credits.",
             default: 80,
         });
 
