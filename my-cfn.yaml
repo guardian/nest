@@ -1,10 +1,14 @@
+# Example custom Cloudformation. Set `customCloudformation` in your nest.json to
+# point to this file. (It can have any name.) It must be a fully valid
+# standalone Cloudformation template. Useful for defining non-EC2 resources,
+# such as alarms, or databases.
 AWSTemplateFormatVersion: 2010-09-09
 Description: testing
 
 Parameters:
   App:
     Type: String
-    Default: 'Test'
+    Default: "Test"
 
 Resources:
   AppRole:

@@ -26,7 +26,7 @@ type info struct {
 	Bucket                  string
 	CloudformationStackName string
 	Stack                   string
-	CustomCloudformation	bool
+	CustomCloudformation    bool
 }
 
 var target string = "target"
@@ -57,8 +57,12 @@ alb-ec2-service
   in order to specify the required parameter values - i.e. for things
   like the VPC ID and subnets.
 
-  Use the naming convention: STACK-APP-STAGE
+  Use the naming convention: [stack]-[app]-[STAGE]
   (e.g. frontend-nest-PROD).
+
+  If you are using the 'customCloudformation' parameter, you'll need
+  to manually create that stack too. The naming convention is 
+  [stack]-[app]-custom-[STAGE].
 `
 
 func main() {

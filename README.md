@@ -77,7 +77,40 @@ Note, `/` and `.` in parameter names are converted to `_`. See the
 
 ## Local development
 
-TODO.
+### Testing changes
+
+Nest is self-deploying, at least for the main `alb-ec2-service` recipe. You can
+test changes by running Nest on itself. E.g.
+
+    $ go run main.go build
+
+to check the build command.
+
+If you need to install Go use brew. For Docker, which is also required, see the
+main Docker website.
+
+Nest also runs in Teamcity (under `dotcom`) and deploys via Riffraff so you can
+test the entire deployment.
+
+### Changing the Cloudformation
+
+Nest uses [Amazon CDK] to generate its cloudformation. In the future the hope is
+to write this in Go itself, but for now it is written in Typescript. To update:
+
+1. Modify the relevant stack file in the `cdk/stacks` directory with your changes.
+2. Run `yarn synth` from the `cdk` directory.
+3. Copy the outputted template JSON to the relevant Go code (located in the
+   `tpl` directory).
+
+You can then test and publish your change.
+
+### Publishing a new version
+
+1. Make your changes.
+2. Run `./build.sh` to generate new binaries.
+3. Commit the above and raise a PR.
+4. Once merged into `main` create a new Github release. Make sure you include
+   the new binaries in the release by uploading them on the release form page.
 
 ## Extra reading
 
