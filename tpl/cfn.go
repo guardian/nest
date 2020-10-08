@@ -662,6 +662,12 @@ var AlbEc2Stack string = `
 			  }
 			}
 		  ],
+		  "TargetGroupAttributes": [
+			{
+			  "Key": "deregistration_delay.timeout_seconds",
+			  "Value": "10"
+			}
+		  ],
 		  "TargetType": "instance",
 		  "UnhealthyThresholdCount": 5,
 		  "VpcId": {

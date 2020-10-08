@@ -238,6 +238,7 @@ export class AlbEc2Stack extends cdk.Stack {
             port: 3030,
             protocol: elbv2.ApplicationProtocol.HTTP,
             targets: [asg],
+            deregistrationDelay: cdk.Duration.seconds(10),
             healthCheck: {
                 path: "/healthcheck",
                 healthyThresholdCount: 2,

@@ -47,6 +47,19 @@ For additional help, see:
 The usual Riffraff rules apply - your Riffraff user will need to have permission
 to write to your artifact bucket for example.
 
+## Custom resources
+
+Nest provides a useful mechanism to provision core resources like EC2 instances
+and ALBs, but there are likely to be other, non-standard resources you want too.
+These might be: custom IAM policies, alarms, or a database like Elasticsearch.
+To manage these, the `alb-ec2-service` recipe supports an optional
+`customCloudformation` field; set it to the relative path of a valid
+Cloudformation template, and this will be deployed as part of your build as a
+separate Cloudformation stack. The naming convention for it is
+`[STACK]-[app]-custom-[STAGE]` or `[STACK]-[custom-name]-custom-[STAGE]` if you
+have used the `cloudformationStackName` Nest config parameter to customise
+things.
+
 ## Logging
 
 Logging is provided by Cloudwatch Logs (which can be forwarded to Kinesis/ELK if
@@ -61,6 +74,10 @@ on startup to your app as environment variables.
 
 Note, `/` and `.` in parameter names are converted to `_`. See the
 `nest-secrets` README for more info here.
+
+## Local development
+
+TODO.
 
 ## Extra reading
 
