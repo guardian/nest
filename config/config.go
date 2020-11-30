@@ -16,6 +16,7 @@ type Config struct {
 	DeploymentType       string `json:"deploymentType"`
 	ArtifactBucket       string `json:"artifactBucket"`
 	CustomCloudformation string `json:"customCloudformation"`
+	CloudformationOverrideFile string `json:"cloudformationOverrideFile"`
 
 	// Note, leave empty to use the default. This is really for migrations only.
 	CloudformationStackName string `json:"cloudformationStackName"`

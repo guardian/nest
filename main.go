@@ -174,8 +174,15 @@ func buildArtifact(c config.Config) {
 	err = ioutil.WriteFile(filepath.Join(target, "riff-raff.yaml"), rrOutput, os.ModePerm)
 	check(err, "Unable to write riff-raff.yaml file.")
 
-	err = ioutil.WriteFile(filepath.Join(target, "cfn", "cfn.yaml"), []byte(tpl.AlbEc2Stack), os.ModePerm)
-	check(err, "Unable to write cfn.yaml file.")
+	if c.CloudformationOverrideFile != "" {
+		cfnOverride, err := ioutil.ReadFile(c.CloudformationOverrideFile)
+		check(err, "Unable to read cloudformation override file.")
+		err = ioutil.WriteFile(target+"/cfn/cfn.yaml", cfnOverride, os.ModePerm)
+		check(err, "Unable to write cfn.yaml override file.")
+	} else {
+		err = ioutil.WriteFile(filepath.Join(target, "cfn", "cfn.yaml"), []byte(tpl.AlbEc2Stack), os.ModePerm)
+		check(err, "Unable to write cfn.yaml file.")
+	}
 
 	if c.CustomCloudformation != "" {
 		makeDir(target, "customCfn")
