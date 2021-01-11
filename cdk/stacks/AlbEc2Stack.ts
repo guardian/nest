@@ -199,6 +199,7 @@ export class AlbEc2Stack extends cdk.Stack {
             `aws s3 cp s3://${s3Bucket.valueAsString}/${s3Key.valueAsString} app.tar.gz`,
             `docker load < app.tar.gz`,
             `docker run \
+            --ulimit nofile=2048:2048 \
             --env-file .env \
             -p 3030:3030 \
             --log-driver=awslogs \
